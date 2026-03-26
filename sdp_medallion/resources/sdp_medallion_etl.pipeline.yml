@@ -1,0 +1,23 @@
+# Lakeflow Spark Declarative Pipeline — Medallion Architecture
+# Bronze schema is the pipeline default; silver and gold use fully-qualified names.
+# Glob restricted to bronze/** during initial build; expand to **  after bronze is validated.
+
+resources:
+  pipelines:
+    sdp_medallion_etl:
+      name: sdp_medallion_etl
+      catalog: ${var.catalog}
+      schema: ${var.bronze_schema}
+      serverless: true
+      root_path: "../src/sdp_medallion_etl"
+
+      configuration:
+        catalog: ${var.catalog}
+        bronze_schema: ${var.bronze_schema}
+        silver_schema: ${var.silver_schema}
+        gold_schema: ${var.gold_schema}
+
+      libraries:
+        # All three layers: bronze → silver → gold (SDP resolves dependency order automatically)
+        - glob:
+            include: ../src/sdp_medallion_etl/transformations/**

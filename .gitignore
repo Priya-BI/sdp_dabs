@@ -1,0 +1,20 @@
+# Databricks / DABs generated state
+.databricks/
+
+# Claude Code local config and skills library
+.claude/
+.ai-dev-kit/
+
+# Cursor IDE and MCP local config
+.cursor/
+.mcp.json
+
+# Python artifacts
+__pycache__/
+*.egg-info
+.venv/
+build/
+dist/
+
+# Notebooks used for exploration (not production code)
+**/explorations/**

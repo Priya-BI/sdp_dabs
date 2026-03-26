@@ -1,0 +1,48 @@
+# Databricks Asset Bundle for sdp_medallion — Medallion Architecture Pipeline
+# Separate UC schemas for bronze, silver, and gold within the workspace catalog.
+bundle:
+  name: sdp_medallion
+  uuid: 2b9b7118-5d00-446b-a53a-c1f527df1bee
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    description: Unity Catalog catalog name
+    default: workspace
+  bronze_schema:
+    description: Schema for bronze (raw ingestion) layer tables
+    default: bronze_sdp_dev
+  silver_schema:
+    description: Schema for silver (cleaned & enriched) layer tables
+    default: silver_sdp_dev
+  gold_schema:
+    description: Schema for gold (business-ready, SCD & aggregates) layer tables
+    default: gold_sdp_dev
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://dbc-e2854db0-3829.cloud.databricks.com
+    variables:
+      catalog: workspace
+      bronze_schema: bronze_sdp_dev
+      silver_schema: silver_sdp_dev
+      gold_schema: gold_sdp_dev
+
+  prod:
+    mode: production
+    workspace:
+      host: https://dbc-e2854db0-3829.cloud.databricks.com
+      root_path: /Workspace/Users/priya.ambastha@outlook.com/.bundle/${bundle.name}/${bundle.target}
+    variables:
+      catalog: workspace
+      bronze_schema: bronze_sdp
+      silver_schema: silver_sdp
+      gold_schema: gold_sdp
+    permissions:
+      - user_name: priya.ambastha@outlook.com
+        level: CAN_MANAGE

@@ -20,41 +20,23 @@ Serverless Lakeflow Spark Declarative Pipeline (SQL) implementing a Bronze → S
 
 ## Architecture Overview
 
+
+```mermaid
+flowchart LR
+    A["Unity Catalog Volume (JSON)<br/>workspace.raw_data.raw_sdp/<br/>• customers/<br/>• orders/<br/>• line_items/"]
+
+    B["BRONZE (workspace.bronze_sdp_dev)<br/>Streaming ingest from JSON volume<br/>• bronze_customers<br/>• bronze_orders<br/>• bronze_line_items"]
+
+    C["SILVER (workspace.silver_sdp_dev)<br/>Cleaning, validation, enrichment<br/>• silver_customers<br/>• silver_orders<br/>• silver_line_items"]
+
+    D["GOLD (workspace.gold_sdp_dev)<br/>Deduplication via CDC + aggregate MVs<br/>• dim_customers (SCD2)<br/>• fact_orders (SCD1)<br/>• fact_line_items (SCD1)<br/>• daily_order_summary <br/>• gold_product_sales<br/>• gold_product_by_region "]
+
+    A -->|STREAM| B
+    B -->|STREAM| C
+    C -->|AUTO CDC| D
 ```
-generate_retail_data.py
-        │
-        ▼
-Unity Catalog Volume  (JSON)
-workspace.demo_dw_raw.raw_data/
-  ├── customers/
-  ├── orders/
-  └── line_items/
-        │
-        ▼
-┌─────────────────────────────────────────────┐
-│  BRONZE  (workspace.bronze_dev)             │
-│  Streaming ingest from JSON volume          │
-│  bronze_customers / bronze_orders           │
-│  bronze_line_items                          │
-└──────────────────┬──────────────────────────┘
-                   │ STREAM
-┌──────────────────▼──────────────────────────┐
-│  SILVER  (workspace.silver_dev)             │
-│  Cleaning, validation, enrichment           │
-│  silver_customers / silver_orders           │
-│  silver_line_items                          │
-└──────────────────┬──────────────────────────┘
-                   │ AUTO CDC
-┌──────────────────▼──────────────────────────┐
-│  GOLD  (workspace.gold_dev)                 │
-│  Deduplication via CDC + aggregate MVs      │
-│  gold_dim_customers (SCD2)                  │
-│  gold_fact_orders   (SCD1)                  │
-│  gold_fact_line_items (SCD1)                │
-│  gold_daily_order_summary  (MV)             │
-│  gold_product_performance  (MV)             │
-└─────────────────────────────────────────────┘
-```
+
+
 ## Repository Structure
 
 ```

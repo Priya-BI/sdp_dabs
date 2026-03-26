@@ -16,6 +16,47 @@ Serverless Lakeflow Spark Declarative Pipeline (SQL) implementing a Bronze → S
 
 ## Folder structure
 
+---
+
+## Architecture Overview
+
+```
+generate_retail_data.py
+        │
+        ▼
+Unity Catalog Volume  (JSON)
+workspace.demo_dw_raw.raw_data/
+  ├── customers/
+  ├── orders/
+  └── line_items/
+        │
+        ▼
+┌─────────────────────────────────────────────┐
+│  BRONZE  (workspace.bronze_dev)             │
+│  Streaming ingest from JSON volume          │
+│  bronze_customers / bronze_orders           │
+│  bronze_line_items                          │
+└──────────────────┬──────────────────────────┘
+                   │ STREAM
+┌──────────────────▼──────────────────────────┐
+│  SILVER  (workspace.silver_dev)             │
+│  Cleaning, validation, enrichment           │
+│  silver_customers / silver_orders           │
+│  silver_line_items                          │
+└──────────────────┬──────────────────────────┘
+                   │ AUTO CDC
+┌──────────────────▼──────────────────────────┐
+│  GOLD  (workspace.gold_dev)                 │
+│  Deduplication via CDC + aggregate MVs      │
+│  gold_dim_customers (SCD2)                  │
+│  gold_fact_orders   (SCD1)                  │
+│  gold_fact_line_items (SCD1)                │
+│  gold_daily_order_summary  (MV)             │
+│  gold_product_performance  (MV)             │
+└─────────────────────────────────────────────┘
+```
+## Repository Structure
+
 ```
 src/sdp_medallion_etl/
 ├── explorations/               # Ad-hoc notebooks for data exploration
@@ -60,7 +101,13 @@ Schemas are parameterised in `databricks.yml` (`bronze_schema`, `silver_schema`,
 - Metadata columns added: `_ingested_at`, `_source_file`, `_source_file_modified_at`
 - `delta.enableChangeDataFeed = true` — required for silver streaming reads
 - `delta.columnMapping.mode = name` — supports additive schema changes without rewrites
-- Clustered by primary key (Liquid Clustering)
+- Clustered by primary key (Liquid Clustering
+
+| Table               | Cluster By                 | Source Path                        |
+|---------------------|----------------------------|------------------------------------|
+| bronze_customers    | customer_id                | `.../raw_data/customers/`          |
+| bronze_orders       | order_date, customer_id    | `.../raw_data/orders/`             |
+| bronze_line_items   | order_id                   | `.../raw_data/line_items/`         |
 
 ### Silver
 - Streams from bronze tables via `STREAM(workspace.bronze_sdp_dev.*)`
@@ -94,6 +141,51 @@ SELECT * FROM workspace.gold_sdp_dev.dim_customers WHERE __END_AT IS NULL;
 
 ---
 
+## Unity Catalog Layout
+
+```
+workspace
+├── demo_dw_raw        (schema)
+│   └── raw_data       (volume — JSON source files)
+├── bronze_dev         (schema)
+│   ├── bronze_customers
+│   ├── bronze_orders
+│   └── bronze_line_items
+├── silver_dev         (schema)
+│   ├── silver_customers
+│   ├── silver_orders
+│   └── silver_line_items
+└── gold_dev           (schema)
+    ├── gold_dim_customers
+    ├── gold_fact_orders
+    ├── gold_fact_line_items
+    ├── gold_daily_order_summary
+    └── gold_product_performance
+```
+
+---
+
+## Installed Claude Code Skills (used in this project)
+
+The `.claude/skills/` directory contains Claude Code skills from the Databricks AI Dev Kit. The following are relevant to this project:
+
+| Skill | Purpose in this project |
+|---|---|
+| `databricks-spark-declarative-pipelines` | Authoring and deploying the Bronze/Silver/Gold SDP pipeline |
+| `databricks-synthetic-data-gen` | Generating synthetic retail data via `generate_retail_data.py` |
+| `databricks-unity-catalog` | Managing schemas, volumes, and Delta tables in Unity Catalog |
+| `databricks-aibi-dashboards` | Building and deploying the Executive Business Dashboard |
+| `databricks-jobs` | Scheduling and running pipeline jobs |
+| `databricks-config` | Managing workspace profiles and connections |
+| `databricks-dbsql` | Writing and testing SQL against Databricks SQL warehouses |
+| `databricks-bundles` | CI/CD deployment of pipeline assets across environments |
+| `databricks-python-sdk` | Programmatic Databricks API access |
+| `databricks-metric-views` | Defining governed business metrics on top of Gold layer tables |
+| `databricks-docs` | Reference documentation for unfamiliar Databricks features |
+
+---
+---
+
 ## Deploying and running
 
 ```bash
@@ -115,6 +207,13 @@ databricks bundle run sdp_medallion_etl --target prod
 ```
 
 ---
+## Prerequisites
+
+- Databricks workspace with Unity Catalog enabled
+- Serverless compute (used by both the data generator and SDP pipeline)
+- `databricks-connect >= 16.4, < 17.4` for running `generate_retail_data.py` locally
+- Python packages: `faker`, `numpy`, `pandas`
+
 
 ## References
 

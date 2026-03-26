@@ -20,16 +20,15 @@ Serverless Lakeflow Spark Declarative Pipeline (SQL) implementing a Bronze → S
 
 ## Architecture Overview
 
-
 ```mermaid
 flowchart LR
-    A["Unity Catalog<br/>Volume (JSON)<br/>workspace.raw_data.raw_sdp<br/>• customers<br/>• orders<br/>• line_items"]
+    A["<b>UNITY CATALOG</b><br/>Volume (JSON)<br/>workspace.raw_data.raw_sdp<br/>• customers<br/>• orders<br/>• line_items"]
 
-    B["BRONZE<br/>(workspace.bronze_sdp_dev)<br/>Streaming ingest from JSON volume<br/>• bronze_customers<br/>• bronze_orders<br/>• bronze_line_items"]
+    B["<b>BRONZE</b><br/>(workspace.bronze_sdp_dev)<br/>Streaming ingest from JSON volume<br/>• bronze_customers<br/>• bronze_orders<br/>• bronze_line_items"]
 
-    C["SILVER<br/>(workspace.silver_sdp_dev)<br/>Cleaning, validation, enrichment<br/>• silver_customers<br/>• silver_orders<br/>• silver_line_items"]
+    C["<b>SILVER</b><br/>(workspace.silver_sdp_dev)<br/>Cleaning, validation, enrichment<br/>• silver_customers<br/>• silver_orders<br/>• silver_line_items"]
 
-    D["GOLD<br/>(workspace.gold_sdp_dev)<br/>Deduplication via CDC + aggregate MVs<br/>• dim_customers (SCD2)<br/>• fact_orders (SCD1)<br/>• fact_line_items (SCD1)<br/>• daily_order_summary <br/>• gold_product_sales<br/>• gold_product_by_region "]
+    D["<b>GOLD</b><br/>(workspace.gold_sdp_dev)<br/>Deduplication via CDC + aggregate MVs<br/>• dim_customers (SCD2)<br/>• fact_orders (SCD1)<br/>• fact_line_items (SCD1)<br/>• daily_order_summary<br/>• gold_product_sales<br/>• gold_product_by_region"]
 
     A -->|STREAM| B
     B -->|STREAM| C

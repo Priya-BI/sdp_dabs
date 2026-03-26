@@ -1,12 +1,10 @@
 # Databricks / DABs generated state
 .databricks/
 
-# Claude Code local config and skills library
-.claude/
+# Local tooling (not project code)
 .ai-dev-kit/
 
-# Cursor IDE and MCP local config
-.cursor/
+# MCP local config (machine-specific paths)
 .mcp.json
 
 # Python artifacts

@@ -1,0 +1,11 @@
+{
+  "disabledMcpjsonServers": [
+    "databricks"
+  ],
+  "permissions": {
+    "allow": [
+      "Bash(databricks --version)",
+      "Bash(databricks current-user:*)"
+    ]
+  }
+}
